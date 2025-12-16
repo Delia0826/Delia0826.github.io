@@ -124,9 +124,17 @@ const ctx = canvas.getContext("2d");
 
 let isScratching = false;
 
-function updateMoney() {
-  moneyDisplay.textContent = `💰 金幣：${money}`;
+
+  if (money < 100) {function checkBankrupt() {
   if (money < 100) {
+    loseSound.play();
+    setTimeout(() => {
+      alert("💸 你已經破產，遊戲結束！");
+      location.reload();
+    }, 800);
+  }
+}
+
     
   }loseSound.play();
 setTimeout(() => {
@@ -164,7 +172,8 @@ function buyTicket(price) {
   resultDiv.textContent = outcome.text;
 
   scratchArea.style.display = "block";
-  drawCover(price);
+  drawCover(price);document.getElementById("shop").style.pointerEvents = "auto";
+
 
   let revealed = false;
 
@@ -176,13 +185,15 @@ function buyTicket(price) {
     }
     if (cleared > imageData.data.length / 8 && !revealed) {
       revealed = true;
-      money += outcome.value;
+      
+
+      updateMoney();
+      setTimeout(() => {money += outcome.value;
 winSound.currentTime = 0;
 winSound.play();
 updateMoney();
+checkBankrupt(); // 👈 這裡才檢查
 
-      updateMoney();
-      setTimeout(() => {
         scratchArea.style.display = "none";
       }, 1000);
     }
