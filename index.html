@@ -1,17 +1,13 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset = "utf-8">
-    <title>張馨云</title>
-    <link rel="icon" href="icon.png">
-  </head>
-  <body>
-      
-  </body>
-</html>
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>張馨云 - 刮刮樂遊戲</title>
+<link rel="icon" href="icon.png">
+
+  
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>刮刮樂遊戲</title>
@@ -128,8 +124,10 @@ let isScratching = false;
   function updateMoney() {
   moneyDisplay.textContent = `💰 金幣：${money}`;
 }
+
 function checkBankrupt() {
   if (money < 100) {
+    loseSound.currentTime = 0;
     loseSound.play();
     setTimeout(() => {
       alert("💸 你已經破產，遊戲結束！");
@@ -138,15 +136,6 @@ function checkBankrupt() {
   }
 }
 
-
-    
-  }loseSound.play();
-setTimeout(() => {
-  alert("💸 你已經破產，遊戲結束！");
-  location.reload();
-}, 800);
-
-}
 
 function drawCover(price) {
   const style = ticketStyles[price];
@@ -193,10 +182,18 @@ function buyTicket(price) {
 
       updateMoney();
       setTimeout(() => {money += outcome.value;
-winSound.currentTime = 0;
-winSound.play();
+
+if (outcome.value > 0) {
+  winSound.currentTime = 0;
+  winSound.play();
+} else {
+  loseSound.currentTime = 0;
+  loseSound.play();
+}
+
 updateMoney();
-checkBankrupt(); // 👈 這裡才檢查
+checkBankrupt();
+
 
         scratchArea.style.display = "none";
       }, 1000);
@@ -229,8 +226,17 @@ canvas.onmouseleave = () => {
     revealCheck();
   };
 
-  canvas.ontouchstart = () => isScratching = true;
-  canvas.ontouchend = () => isScratching = false;
+  canvas.ontouchstart = () => {
+  isScratching = true;
+  scratchSound.currentTime = 0;
+  scratchSound.play();
+};
+
+canvas.ontouchend = () => {
+  isScratching = false;
+  scratchSound.pause();
+};
+
 
   canvas.ontouchmove = (e) => {
     e.preventDefault();
