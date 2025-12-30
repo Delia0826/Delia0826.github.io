@@ -13,14 +13,14 @@ body {
   padding: 20px;
 }
 
-#money {
+#money, #record {
   font-size: 20px;
   margin-bottom: 10px;
 }
 
 #player {
   font-size: 18px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 button {
@@ -55,24 +55,6 @@ canvas {
 #nextBtn, #autoBtn {
   display: none;
 }
-
-/* 排行榜 */
-#leaderboard {
-  width: 300px;
-  margin: 30px auto;
-  background: #fff;
-  border: 2px solid #333;
-  padding: 10px;
-}
-
-#leaderboard h2 {
-  margin: 5px 0 10px;
-}
-
-#leaderboard ol {
-  padding-left: 20px;
-  text-align: left;
-}
 </style>
 </head>
 
@@ -81,7 +63,8 @@ canvas {
 <h1>🎫 刮刮樂遊戲</h1>
 
 <div id="player"></div>
-<div id="money">💰 金幣：600</div>
+<div id="money">💰 目前金幣：600</div>
+<div id="record">🏆 最高紀錄：600</div>
 
 <div id="shop">
   <button onclick="buyTicket(100)">100 元</button>
@@ -97,24 +80,23 @@ canvas {
 <button id="nextBtn" onclick="nextTicket()">下一張</button>
 <button id="autoBtn" onclick="autoPick()">🎲 幫我選一張</button>
 
-<div id="leaderboard">
-  <h2>🏆 最高紀錄排行榜</h2>
-  <ol id="rankList"></ol>
-</div>
-
 <script>
 /* ===== 玩家名稱（強制） ===== */
 let playerName = "";
 while (!playerName) {
-  playerName = prompt("請輸入你的玩家名稱（排行榜用）：");
+  playerName = prompt("請輸入你的玩家名稱：");
 }
 document.getElementById("player").textContent = "👤 玩家：" + playerName;
 
-/* ===== 排行榜（最高紀錄） ===== */
-let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+/* ===== 金錢與最高紀錄 ===== */
+let money = 600;
+let recordKey = "record_" + playerName;
+let record = Number(localStorage.getItem(recordKey)) || money;
+
+const moneyDiv = document.getElementById("money");
+const recordDiv = document.getElementById("record");
 
 /* ===== 遊戲資料 ===== */
-let money = 600;
 let isScratching = false;
 const prices = [100, 200, 300];
 
@@ -125,7 +107,6 @@ const outcomes = [
   { text: "500 元", value: 500 }
 ];
 
-const moneyDiv = document.getElementById("money");
 const scratchArea = document.getElementById("scratchArea");
 const resultDiv = document.getElementById("result");
 const canvas = document.getElementById("canvas");
@@ -133,38 +114,17 @@ const ctx = canvas.getContext("2d");
 const nextBtn = document.getElementById("nextBtn");
 const autoBtn = document.getElementById("autoBtn");
 const shop = document.getElementById("shop");
-const rankList = document.getElementById("rankList");
 
-/* ===== 更新金幣 ===== */
+/* ===== 更新金錢與最高紀錄 ===== */
 function updateMoney() {
-  moneyDiv.textContent = "💰 金幣：" + money;
-  updateLeaderboard();
-}
+  moneyDiv.textContent = "💰 目前金幣：" + money;
 
-/* ===== 更新排行榜（只存最高紀錄） ===== */
-function updateLeaderboard() {
-  const existing = leaderboard.find(p => p.name === playerName);
-
-  if (existing) {
-    if (money > existing.record) {
-      existing.record = money; // 只更新最高
-    }
-  } else {
-    leaderboard.push({
-      name: playerName,
-      record: money
-    });
+  if (money > record) {
+    record = money;
+    localStorage.setItem(recordKey, record);
   }
 
-  leaderboard.sort((a, b) => b.record - a.record);
-  localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
-
-  rankList.innerHTML = "";
-  leaderboard.forEach((p, i) => {
-    const li = document.createElement("li");
-    li.textContent = `#${i + 1} ${p.name} - 最高 ${p.record} 💰`;
-    rankList.appendChild(li);
-  });
+  recordDiv.textContent = "🏆 最高紀錄：" + record;
 }
 
 /* ===== 刮刮層 ===== */
@@ -197,7 +157,6 @@ function buyTicket(price) {
   shop.style.pointerEvents = "none";
 
   drawCover();
-
   let revealed = false;
 
   function check() {
@@ -243,8 +202,8 @@ function autoPick() {
   buyTicket(price);
 }
 
-/* 初始化排行榜 */
-updateLeaderboard();
+/* 初始化 */
+updateMoney();
 </script>
 
 </body>
