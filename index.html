@@ -98,19 +98,19 @@ canvas {
 <button id="autoBtn" onclick="autoPick()">🎲 幫我選一張</button>
 
 <div id="leaderboard">
-  <h2>🏆 排行榜</h2>
+  <h2>🏆 最高紀錄排行榜</h2>
   <ol id="rankList"></ol>
 </div>
 
 <script>
-/* ===== 取玩家名稱（強制） ===== */
+/* ===== 玩家名稱（強制） ===== */
 let playerName = "";
 while (!playerName) {
   playerName = prompt("請輸入你的玩家名稱（排行榜用）：");
 }
 document.getElementById("player").textContent = "👤 玩家：" + playerName;
 
-/* ===== 排行榜（localStorage） ===== */
+/* ===== 排行榜（最高紀錄） ===== */
 let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
 
 /* ===== 遊戲資料 ===== */
@@ -141,23 +141,28 @@ function updateMoney() {
   updateLeaderboard();
 }
 
-/* ===== 更新排行榜 ===== */
+/* ===== 更新排行榜（只存最高紀錄） ===== */
 function updateLeaderboard() {
   const existing = leaderboard.find(p => p.name === playerName);
 
   if (existing) {
-    existing.money = money;
+    if (money > existing.record) {
+      existing.record = money; // 只更新最高
+    }
   } else {
-    leaderboard.push({ name: playerName, money });
+    leaderboard.push({
+      name: playerName,
+      record: money
+    });
   }
 
-  leaderboard.sort((a, b) => b.money - a.money);
+  leaderboard.sort((a, b) => b.record - a.record);
   localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
 
   rankList.innerHTML = "";
   leaderboard.forEach((p, i) => {
     const li = document.createElement("li");
-    li.textContent = `#${i + 1} ${p.name} - ${p.money} 💰`;
+    li.textContent = `#${i + 1} ${p.name} - 最高 ${p.record} 💰`;
     rankList.appendChild(li);
   });
 }
