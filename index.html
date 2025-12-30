@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
@@ -15,11 +16,6 @@ body {
 #money, #record {
   font-size: 20px;
   margin-bottom: 10px;
-}
-
-#player {
-  font-size: 18px;
-  margin-bottom: 15px;
 }
 
 button {
@@ -61,7 +57,6 @@ canvas {
 
 <h1>🎫 刮刮樂遊戲</h1>
 
-<div id="player"></div>
 <div id="money">💰 目前金幣：600</div>
 <div id="record">🏆 最高紀錄：600</div>
 
@@ -80,17 +75,9 @@ canvas {
 <button id="autoBtn" onclick="autoPick()">🎲 幫我選一張</button>
 
 <script>
-/* ===== 玩家名稱（強制） ===== */
-let playerName = "";
-while (!playerName) {
-  playerName = prompt("請輸入你的玩家名稱：");
-}
-document.getElementById("player").textContent = "👤 玩家：" + playerName;
-
 /* ===== 金錢與最高紀錄 ===== */
 let money = 600;
-let recordKey = "record_" + playerName;
-let record = Number(localStorage.getItem(recordKey)) || money;
+let record = Number(localStorage.getItem("highestRecord")) || money;
 
 const moneyDiv = document.getElementById("money");
 const recordDiv = document.getElementById("record");
@@ -120,7 +107,7 @@ function updateMoney() {
 
   if (money > record) {
     record = money;
-    localStorage.setItem(recordKey, record);
+    localStorage.setItem("highestRecord", record);
   }
 
   recordDiv.textContent = "🏆 最高紀錄：" + record;
@@ -207,4 +194,3 @@ updateMoney();
 
 </body>
 </html>
-
