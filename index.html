@@ -15,6 +15,11 @@ body {
 
 #money {
   font-size: 20px;
+  margin-bottom: 10px;
+}
+
+#player {
+  font-size: 18px;
   margin-bottom: 20px;
 }
 
@@ -47,8 +52,26 @@ canvas {
   left: 0;
 }
 
-#nextBtn {
+#nextBtn, #autoBtn {
   display: none;
+}
+
+/* 排行榜 */
+#leaderboard {
+  width: 300px;
+  margin: 30px auto;
+  background: #fff;
+  border: 2px solid #333;
+  padding: 10px;
+}
+
+#leaderboard h2 {
+  margin: 5px 0 10px;
+}
+
+#leaderboard ol {
+  padding-left: 20px;
+  text-align: left;
 }
 </style>
 </head>
@@ -56,6 +79,8 @@ canvas {
 <body>
 
 <h1>🎫 刮刮樂遊戲</h1>
+
+<div id="player"></div>
 <div id="money">💰 金幣：600</div>
 
 <div id="shop">
@@ -70,10 +95,29 @@ canvas {
 </div>
 
 <button id="nextBtn" onclick="nextTicket()">下一張</button>
+<button id="autoBtn" onclick="autoPick()">🎲 幫我選一張</button>
+
+<!-- 排行榜 -->
+<div id="leaderboard">
+  <h2>🏆 排行榜</h2>
+  <ol id="rankList"></ol>
+</div>
 
 <script>
+/* ===== 玩家名稱 ===== */
+let playerName = "";
+while(!playerName){
+  playerName = prompt("請輸入你的玩家名稱：");
+}
+document.getElementById("player").textContent = "👤 玩家：" + playerName;
+
+/* ===== 排行榜資料 ===== */
+let leaderboard = [];
+
+/* ===== 遊戲資料 ===== */
 let money = 600;
 let isScratching = false;
+const prices = [100, 200, 300];
 
 const outcomes = [
   {text:"銘謝惠顧", value:0},
@@ -88,12 +132,36 @@ const resultDiv = document.getElementById("result");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const nextBtn = document.getElementById("nextBtn");
+const autoBtn = document.getElementById("autoBtn");
 const shop = document.getElementById("shop");
+const rankList = document.getElementById("rankList");
 
+/* ===== 更新金幣 ===== */
 function updateMoney(){
   moneyDiv.textContent = "💰 金幣：" + money;
+  updateLeaderboard();
 }
 
+/* ===== 排行榜更新 ===== */
+function updateLeaderboard(){
+  const existing = leaderboard.find(p => p.name === playerName);
+  if(existing){
+    existing.money = money;
+  } else {
+    leaderboard.push({name: playerName, money});
+  }
+
+  leaderboard.sort((a,b)=>b.money - a.money);
+
+  rankList.innerHTML = "";
+  leaderboard.forEach(p=>{
+    const li = document.createElement("li");
+    li.textContent = `${p.name} - ${p.money} 💰`;
+    rankList.appendChild(li);
+  });
+}
+
+/* ===== 刮刮層 ===== */
 function drawCover(){
   ctx.globalCompositeOperation = "source-over";
   ctx.fillStyle = "#999";
@@ -104,6 +172,7 @@ function drawCover(){
   ctx.fillText("刮開看看！",150,80);
 }
 
+/* ===== 買票 ===== */
 function buyTicket(price){
   if(money < price){
     alert("金幣不足");
@@ -118,6 +187,7 @@ function buyTicket(price){
 
   scratchArea.style.display = "block";
   nextBtn.style.display = "none";
+  autoBtn.style.display = "none";
   shop.style.pointerEvents = "none";
 
   drawCover();
@@ -150,13 +220,25 @@ function buyTicket(price){
   };
 }
 
+/* ===== 下一張 ===== */
 function nextTicket(){
   scratchArea.style.display="none";
   nextBtn.style.display="none";
   resultDiv.textContent="";
   ctx.clearRect(0,0,300,150);
   shop.style.pointerEvents="auto";
+  autoBtn.style.display="inline-block";
 }
+
+/* ===== 幫我選一張 ===== */
+function autoPick(){
+  autoBtn.style.display="none";
+  const price = prices[Math.floor(Math.random()*prices.length)];
+  buyTicket(price);
+}
+
+/* 初始化排行榜 */
+updateLeaderboard();
 </script>
 
 </body>
