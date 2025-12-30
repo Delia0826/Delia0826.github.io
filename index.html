@@ -97,22 +97,21 @@ canvas {
 <button id="nextBtn" onclick="nextTicket()">下一張</button>
 <button id="autoBtn" onclick="autoPick()">🎲 幫我選一張</button>
 
-<!-- 排行榜 -->
 <div id="leaderboard">
   <h2>🏆 排行榜</h2>
   <ol id="rankList"></ol>
 </div>
 
 <script>
-/* ===== 玩家名稱 ===== */
+/* ===== 取玩家名稱（強制） ===== */
 let playerName = "";
-while(!playerName){
-  playerName = prompt("請輸入你的玩家名稱：");
+while (!playerName) {
+  playerName = prompt("請輸入你的玩家名稱（排行榜用）：");
 }
 document.getElementById("player").textContent = "👤 玩家：" + playerName;
 
-/* ===== 排行榜資料 ===== */
-let leaderboard = [];
+/* ===== 排行榜（localStorage） ===== */
+let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
 
 /* ===== 遊戲資料 ===== */
 let money = 600;
@@ -120,10 +119,10 @@ let isScratching = false;
 const prices = [100, 200, 300];
 
 const outcomes = [
-  {text:"銘謝惠顧", value:0},
-  {text:"100 元", value:100},
-  {text:"200 元", value:200},
-  {text:"500 元", value:500}
+  { text: "銘謝惠顧", value: 0 },
+  { text: "100 元", value: 100 },
+  { text: "200 元", value: 200 },
+  { text: "500 元", value: 500 }
 ];
 
 const moneyDiv = document.getElementById("money");
@@ -137,44 +136,46 @@ const shop = document.getElementById("shop");
 const rankList = document.getElementById("rankList");
 
 /* ===== 更新金幣 ===== */
-function updateMoney(){
+function updateMoney() {
   moneyDiv.textContent = "💰 金幣：" + money;
   updateLeaderboard();
 }
 
-/* ===== 排行榜更新 ===== */
-function updateLeaderboard(){
+/* ===== 更新排行榜 ===== */
+function updateLeaderboard() {
   const existing = leaderboard.find(p => p.name === playerName);
-  if(existing){
+
+  if (existing) {
     existing.money = money;
   } else {
-    leaderboard.push({name: playerName, money});
+    leaderboard.push({ name: playerName, money });
   }
 
-  leaderboard.sort((a,b)=>b.money - a.money);
+  leaderboard.sort((a, b) => b.money - a.money);
+  localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
 
   rankList.innerHTML = "";
-  leaderboard.forEach(p=>{
+  leaderboard.forEach((p, i) => {
     const li = document.createElement("li");
-    li.textContent = `${p.name} - ${p.money} 💰`;
+    li.textContent = `#${i + 1} ${p.name} - ${p.money} 💰`;
     rankList.appendChild(li);
   });
 }
 
 /* ===== 刮刮層 ===== */
-function drawCover(){
+function drawCover() {
   ctx.globalCompositeOperation = "source-over";
   ctx.fillStyle = "#999";
-  ctx.fillRect(0,0,300,150);
+  ctx.fillRect(0, 0, 300, 150);
   ctx.fillStyle = "#fff";
   ctx.font = "20px Arial";
   ctx.textAlign = "center";
-  ctx.fillText("刮開看看！",150,80);
+  ctx.fillText("刮開看看！", 150, 80);
 }
 
 /* ===== 買票 ===== */
-function buyTicket(price){
-  if(money < price){
+function buyTicket(price) {
+  if (money < price) {
     alert("金幣不足");
     return;
   }
@@ -182,7 +183,7 @@ function buyTicket(price){
   money -= price;
   updateMoney();
 
-  const outcome = outcomes[Math.floor(Math.random()*outcomes.length)];
+  const outcome = outcomes[Math.floor(Math.random() * outcomes.length)];
   resultDiv.textContent = outcome.text;
 
   scratchArea.style.display = "block";
@@ -194,13 +195,13 @@ function buyTicket(price){
 
   let revealed = false;
 
-  function check(){
-    const img = ctx.getImageData(0,0,300,150).data;
+  function check() {
+    const img = ctx.getImageData(0, 0, 300, 150).data;
     let clear = 0;
-    for(let i=3;i<img.length;i+=4){
-      if(img[i]===0) clear++;
+    for (let i = 3; i < img.length; i += 4) {
+      if (img[i] === 0) clear++;
     }
-    if(clear > img.length/6 && !revealed){
+    if (clear > img.length / 6 && !revealed) {
       revealed = true;
       money += outcome.value;
       updateMoney();
@@ -208,32 +209,32 @@ function buyTicket(price){
     }
   }
 
-  canvas.onmousedown = ()=>isScratching=true;
-  canvas.onmouseup = ()=>isScratching=false;
-  canvas.onmousemove = e=>{
-    if(!isScratching) return;
-    ctx.globalCompositeOperation="destination-out";
+  canvas.onmousedown = () => isScratching = true;
+  canvas.onmouseup = () => isScratching = false;
+  canvas.onmousemove = e => {
+    if (!isScratching) return;
+    ctx.globalCompositeOperation = "destination-out";
     ctx.beginPath();
-    ctx.arc(e.offsetX,e.offsetY,15,0,Math.PI*2);
+    ctx.arc(e.offsetX, e.offsetY, 15, 0, Math.PI * 2);
     ctx.fill();
     check();
   };
 }
 
 /* ===== 下一張 ===== */
-function nextTicket(){
-  scratchArea.style.display="none";
-  nextBtn.style.display="none";
-  resultDiv.textContent="";
-  ctx.clearRect(0,0,300,150);
-  shop.style.pointerEvents="auto";
-  autoBtn.style.display="inline-block";
+function nextTicket() {
+  scratchArea.style.display = "none";
+  nextBtn.style.display = "none";
+  resultDiv.textContent = "";
+  ctx.clearRect(0, 0, 300, 150);
+  shop.style.pointerEvents = "auto";
+  autoBtn.style.display = "inline-block";
 }
 
 /* ===== 幫我選一張 ===== */
-function autoPick(){
-  autoBtn.style.display="none";
-  const price = prices[Math.floor(Math.random()*prices.length)];
+function autoPick() {
+  autoBtn.style.display = "none";
+  const price = prices[Math.floor(Math.random() * prices.length)];
   buyTicket(price);
 }
 
