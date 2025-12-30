@@ -1,28 +1,16 @@
-
-
-刮刮樂 html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>10912張馨云 - 刮刮樂遊戲</title>
-<link rel="icon" href="icon.png">
-
-  
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>刮刮樂遊戲</title>
 
 <style>
 body {
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   background: #f2f2f2;
   text-align: center;
   padding: 20px;
-}
-
-h1 {
-  margin-bottom: 10px;
 }
 
 #money {
@@ -34,35 +22,33 @@ button {
   padding: 10px 15px;
   margin: 5px;
   font-size: 16px;
-  cursor: pointer;
 }
 
 #scratchArea {
-  margin: 30px auto;
   width: 300px;
   height: 150px;
+  margin: 20px auto;
   position: relative;
   display: none;
 }
-  #result {
+
+#result {
   width: 300px;
   height: 150px;
   line-height: 150px;
   font-size: 28px;
-  font-weight: bold;
-  background: #fff;
+  background: white;
   border: 2px solid #333;
-
-  position: relative;   /* ⭐ 關鍵 */
 }
 
-
-canvas 
-  {<button id="nextBtn" style="display:none;" onclick="nextTicket()">下一張</button>
-
+canvas {
   position: absolute;
   top: 0;
   left: 0;
+}
+
+#nextBtn {
+  display: none;
 }
 </style>
 </head>
@@ -73,10 +59,9 @@ canvas
 <div id="money">💰 金幣：600</div>
 
 <div id="shop">
-  <button onclick="buyTicket(100)">100 元刮刮樂</button>
-  <button onclick="buyTicket(200)">200 元刮刮樂</button>
-  <button onclick="buyTicket(300)">300 元刮刮樂</button>
-  <button onclick="buyTicket(500)">500 元刮刮樂</button>
+  <button onclick="buyTicket(100)">100 元</button>
+  <button onclick="buyTicket(200)">200 元</button>
+  <button onclick="buyTicket(300)">300 元</button>
 </div>
 
 <div id="scratchArea">
@@ -84,219 +69,95 @@ canvas
   <canvas id="canvas" width="300" height="150"></canvas>
 </div>
 
+<button id="nextBtn" onclick="nextTicket()">下一張</button>
+
 <script>
-  const nextBtn = document.getElementById("nextBtn");
-const shop = document.getElementById("shop");
-
 let money = 600;
-
-// 🔊 音效
-const scratchSound = new Audio("sounds/scratch.mp3");
-const winSound = new Audio("sounds/win.mp3");
-const loseSound = new Audio("sounds/lose.mp3");
-
-scratchSound.loop = true;
-scratchSound.volume = 0.4;
-winSound.volume = 0.6;
-loseSound.volume = 0.6;
-
-  
+let isScratching = false;
 
 const outcomes = [
-  { text: "銘謝惠顧", value: 0 },
-  { text: "100 元", value: 100 },
-  { text: "200 元", value: 200 },
-  { text: "300 元", value: 300 },
-  { text: "500 元", value: 500 },
-  { text: "1000 元", value: 1000 },
-  { text: "2000 元", value: 2000 }
+  {text:"銘謝惠顧", value:0},
+  {text:"100 元", value:100},
+  {text:"200 元", value:200},
+  {text:"500 元", value:500}
 ];
 
-// 不同刮刮樂封面設定
-const ticketStyles = {
-  100: { color: "#f4c430", label: "100 元 刮刮樂" },
-  200: { color: "#4da6ff", label: "200 元 刮刮樂" },
-  300: { color: "#9b59b6", label: "300 元 刮刮樂" },
-  500: { color: "#e74c3c", label: "500 元 刮刮樂" }
-};
-
-const moneyDisplay = document.getElementById("money");
+const moneyDiv = document.getElementById("money");
 const scratchArea = document.getElementById("scratchArea");
 const resultDiv = document.getElementById("result");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+const nextBtn = document.getElementById("nextBtn");
+const shop = document.getElementById("shop");
 
-let isScratching = false;
-  
-
-  function updateMoney() {
-  moneyDisplay.textContent = `💰 金幣：${money}`;
+function updateMoney(){
+  moneyDiv.textContent = "💰 金幣：" + money;
 }
 
-function checkBankrupt() {
-  if (money < 100) {
-    loseSound.currentTime = 0;
-    loseSound.play();
-    setTimeout(() => {
-      alert("💸 你已經破產，遊戲結束！");
-      location.reload();
-    }, 800);
-  }
-}
-
-
-function drawCover(price) {
-  const style = ticketStyles[price];
+function drawCover(){
   ctx.globalCompositeOperation = "source-over";
-  ctx.fillStyle = style.color;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+  ctx.fillStyle = "#999";
+  ctx.fillRect(0,0,300,150);
   ctx.fillStyle = "#fff";
-  ctx.font = "bold 26px Arial";
+  ctx.font = "20px Arial";
   ctx.textAlign = "center";
-  ctx.fillText(style.label, canvas.width / 2, canvas.height / 2);
-
-  ctx.font = "16px Arial";
-  ctx.fillText("上下滑動刮開", canvas.width / 2, canvas.height / 2 + 35);
+  ctx.fillText("刮開看看！",150,80);
 }
 
-function buyTicket(price) {
-  if (money < price) {
-    alert("金幣不足！");
+function buyTicket(price){
+  if(money < price){
+    alert("金幣不足");
     return;
   }
 
   money -= price;
   updateMoney();
 
-  const outcome = outcomes[Math.floor(Math.random() * outcomes.length)];
+  const outcome = outcomes[Math.floor(Math.random()*outcomes.length)];
   resultDiv.textContent = outcome.text;
 
   scratchArea.style.display = "block";
-  drawCover(price);document.getElementById("shop").style.pointerEvents = "auto";
+  nextBtn.style.display = "none";
+  shop.style.pointerEvents = "none";
 
+  drawCover();
 
   let revealed = false;
 
-  function revealCheck() {
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    let cleared = 0;
-    for (let i = 3; i < imageData.data.length; i += 4) {
-      if (imageData.data[i] === 0) cleared++;
+  function check(){
+    const img = ctx.getImageData(0,0,300,150).data;
+    let clear = 0;
+    for(let i=3;i<img.length;i+=4){
+      if(img[i]===0) clear++;
     }
-    if (cleared > imageData.data.length / 8 && !revealed) {
+    if(clear > img.length/6 && !revealed){
       revealed = true;
-      
-      
-setTimeout(() => {
-  money += outcome.value;
-
-  if (outcome.value > 0) {
-    winSound.currentTime = 0;
-    winSound.play();
-  } else {
-    loseSound.currentTime = 0;
-    loseSound.play();
-  }
-
-  updateMoney();
-  checkBankrupt();
-
-  // ⭐ 第三步就在這一行
-  nextBtn.style.display = "inline-block";
-}, 500);
-
+      money += outcome.value;
       updateMoney();
-      setTimeout(() => {money += outcome.value;
-
-if (outcome.value > 0) {
-  winSound.currentTime = 0;
-  winSound.play();
-} else {
-  loseSound.currentTime = 0;
-  loseSound.play();
-}
-
-updateMoney();
-checkBankrupt();
-
-
-        scratchArea.style.display = "none";
-      }, 1000);
+      nextBtn.style.display = "inline-block";
     }
   }
 
-  canvas.onmousedown = () => {
-  isScratching = true;
-  scratchSound.currentTime = 0;
-  scratchSound.play();
-};
-
-  
-canvas.onmouseup = () => {
-  isScratching = false;
-  scratchSound.pause();
-};
-
-canvas.onmouseleave = () => {
-  isScratching = false;
-  scratchSound.pause();
-};
-
-  canvas.onmousemove = (e) => {
-    if (!isScratching) return;
-    ctx.globalCompositeOperation = "destination-out";
+  canvas.onmousedown = ()=>isScratching=true;
+  canvas.onmouseup = ()=>isScratching=false;
+  canvas.onmousemove = e=>{
+    if(!isScratching) return;
+    ctx.globalCompositeOperation="destination-out";
     ctx.beginPath();
-    ctx.arc(e.offsetX, e.offsetY, 15, 0, Math.PI * 2);
+    ctx.arc(e.offsetX,e.offsetY,15,0,Math.PI*2);
     ctx.fill();
-    revealCheck();
-  };
-
-  canvas.ontouchstart = () => {
-  isScratching = true;
-  scratchSound.currentTime = 0;
-  scratchSound.play();
-};
-
-canvas.ontouchend = () => {
-  isScratching = false;
-  scratchSound.pause();
-};
-
-
-  canvas.ontouchmove = (e) => {
-    e.preventDefault();
-    if (!isScratching) return;
-    const rect = canvas.getBoundingClientRect();
-    const touch = e.touches[0];
-    ctx.globalCompositeOperation = "destination-out";
-    ctx.beginPath();
-    ctx.arc(
-      touch.clientX - rect.left,
-      touch.clientY - rect.top,
-      15,
-      0,
-      Math.PI * 2
-    );
-    ctx.fill();
-    revealCheck();
+    check();
   };
 }
-  function nextTicket() {
 
-  // ① 關閉刮刮樂區域
-  scratchArea.style.display = "none";
-
-  // ② 隱藏「下一張」按鈕
-  nextBtn.style.display = "none";
-
-  // ③ 清空中獎結果文字
-  resultDiv.textContent = "";
-
-  // ④ 清空刮刮層（畫布）
-  ctx.globalCompositeOperation = "source-over";
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // ⑤ 解鎖商店，可以再取一張
-  shop.style.pointerEvents = "auto";
+function nextTicket(){
+  scratchArea.style.display="none";
+  nextBtn.style.display="none";
+  resultDiv.textContent="";
+  ctx.clearRect(0,0,300,150);
+  shop.style.pointerEvents="auto";
 }
+</script>
+
+</body>
+</html>
